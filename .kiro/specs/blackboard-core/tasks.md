@@ -11,3 +11,6 @@
 - [ ] 9. Optional, only if verified: a thin adapter that mirrors a *successfully confirmed* local write — never stubbed remote data — through gc-mcp. Leave disabled until then.
 - [ ] 10. Record the under-2:45 demo video from `/workspace/kiroween/demo-video-plan.md` (upload to YouTube only after Igor approves)
 - [ ] 11. Draft Devpost text, Kiro usage write-up, and working-app URL notes for submission
+- [x] 12. Add `/api/stream` Server-Sent Events and live board updates in the UI
+- [x] 13. Add `npm run demo` (`scripts/demo.ts`) to seed agent-a / agent-b and start the local server
+- [x] 14. Add HTTP and SSE tests in `test/http.test.ts`

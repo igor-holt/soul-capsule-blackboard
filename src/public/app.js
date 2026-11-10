@@ -1,6 +1,7 @@
 const errorEl = document.getElementById("error");
 const statsEl = document.getElementById("stats");
 const logEl = document.getElementById("log");
+const liveEl = document.getElementById("live-state");
 
 function cardHtml(card) {
   return `<article class="card">
@@ -17,6 +18,17 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function render(proj, events) {
+  const p = proj.projection ?? proj;
+  statsEl.textContent = `${p.event_count} events in the log, ${p.skipped_count} skipped lines, projected at ${p.generated_at}`;
+  for (const col of ["LIVE", "BLOCKED", "ACTION_REQUIRED"]) {
+    const host = document.getElementById(`col-${col}`);
+    const cards = p.columns[col] ?? [];
+    host.innerHTML = cards.length ? cards.map(cardHtml).join("") : `<p class="meta">None</p>`;
+  }
+  logEl.textContent = (events ?? []).map((e) => JSON.stringify(e)).join("\n") || "(empty log)";
+}
+
 async function refresh() {
   const [projRes, evRes] = await Promise.all([
     fetch("/api/projection"),
@@ -24,14 +36,7 @@ async function refresh() {
   ]);
   const proj = await projRes.json();
   const ev = await evRes.json();
-  const p = proj.projection;
-  statsEl.textContent = `${p.event_count} events in the log, ${p.skipped_count} skipped lines, projected at ${p.generated_at}`;
-  for (const col of ["LIVE", "BLOCKED", "ACTION_REQUIRED"]) {
-    const host = document.getElementById(`col-${col}`);
-    const cards = p.columns[col] ?? [];
-    host.innerHTML = cards.length ? cards.map(cardHtml).join("") : `<p class="meta">None</p>`;
-  }
-  logEl.textContent = (ev.events ?? []).map((e) => JSON.stringify(e)).join("\n") || "(empty log)";
+  render(proj, ev.events);
 }
 
 document.getElementById("append-form").addEventListener("submit", async (event) => {
@@ -60,11 +65,34 @@ document.getElementById("append-form").addEventListener("submit", async (event) 
   const data = await res.json();
   if (!res.ok) {
     errorEl.textContent = (data.errors || [res.statusText]).join("; ");
-    return;
   }
-  await refresh();
+  // The SSE stream also refreshes the board for this tab and any other open tab.
 });
 
-refresh().catch((err) => {
-  errorEl.textContent = String(err);
-});
+if (typeof EventSource === "function") {
+  const source = new EventSource("/api/stream");
+  source.onopen = () => {
+    liveEl.textContent = "Live updates on.";
+  };
+  source.onmessage = (message) => {
+    try {
+      const payload = JSON.parse(message.data);
+      if (payload.projection) render({ projection: payload.projection }, payload.events);
+    } catch (err) {
+      errorEl.textContent = String(err);
+    }
+  };
+  source.onerror = () => {
+    liveEl.textContent = "Live stream interrupted; retrying…";
+  };
+} else {
+  liveEl.textContent = "EventSource unavailable; polling every 2s.";
+  setInterval(() => {
+    refresh().catch((err) => {
+      errorEl.textContent = String(err);
+    });
+  }, 2000);
+  refresh().catch((err) => {
+    errorEl.textContent = String(err);
+  });
+}

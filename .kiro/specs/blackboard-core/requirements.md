@@ -55,3 +55,23 @@ These requirements describe the local Soul Capsule Blackboard. They do not requi
 
 1. WHEN a log line is not valid JSON or fails schema validation, THE SYSTEM SHALL skip that line, continue reading later lines, and report the skip in the API response.
 2. WHEN reporting a skip, THE SYSTEM SHALL NOT rewrite the corrupt line in the log file.
+
+## Requirement 6: Live board updates
+
+**User Story:** As a presenter with the board open, I want the projection to update when another agent appends a capsule so that I do not have to reload the page.
+
+### Acceptance Criteria
+
+1. WHEN a capsule is successfully appended, THE SYSTEM SHALL notify connected web clients over a Server-Sent Events stream at `/api/stream`.
+2. WHEN a client opens `/api/stream`, THE SYSTEM SHALL send a current snapshot and then send an event for each later successful append.
+3. WHEN the UI receives a stream event that includes a projection, THE SYSTEM SHALL render the LIVE, BLOCKED, and ACTION REQUIRED columns from that projection.
+
+## Requirement 7: One-command local demo
+
+**User Story:** As a builder on this machine, I want a single command to start a repeatable two-agent demo so that I can show the board without manual setup.
+
+### Acceptance Criteria
+
+1. WHEN a user runs `npm run demo` from the project root, THE SYSTEM SHALL start the local server, append seed capsules from `agent-a` and `agent-b`, and print the local URL.
+2. WHEN that demo command seeds data, THE SYSTEM SHALL write to a demo session log (default `data/demo-session.jsonl`) and SHALL NOT rewrite lines in any pre-existing log.
+3. WHEN the demo is running, THE SYSTEM SHALL NOT call gc-mcp, Notion, or any remote gateway.

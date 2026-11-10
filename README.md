@@ -44,7 +44,8 @@ Implemented in this local draft:
 - Append-only JSONL log at `data/soul-capsule.jsonl` (gitignored as generated data; the `data/` directory is kept)
 - Schema validation for `evt-` records (`schema_version` `1.0`)
 - Derived board projection with three demo columns
-- A local web UI on `http://127.0.0.1:8788` so two agent sources can append events
+- A local web UI on `http://127.0.0.1:8788` so two agent sources can append events, with live board updates over `/api/stream`
+- `npm run demo` to start the server and seed agent-a / agent-b capsules
 - Unit tests for validation, projection, and append-only behavior
 - A committed `/.kiro` directory (not gitignored)
 
@@ -60,16 +61,23 @@ Not implemented, and not claimed:
 
 ## Run instructions (local)
 
-Requires Node.js 20 or newer.
+Requires Node.js 20 or newer. One-command demo:
 
 ```bash
 cd soul-capsule-blackboard
 npm install
-npm test
-npm start
+npm run demo
 ```
 
-Then open [http://127.0.0.1:8788](http://127.0.0.1:8788). Choose `agent-a` or `agent-b`, set a subject key, pick a status, and append. The three board columns update from the latest event per subject.
+That command starts the local server, seeds capsules from `agent-a` and `agent-b` into a fresh `data/demo-session.jsonl` (it does not rewrite any other log), and prints [http://127.0.0.1:8788](http://127.0.0.1:8788). Open the URL. The board should already show `demo-task` under BLOCKED (latest of two appends) and `review-gate` under ACTION REQUIRED. Further appends update open tabs over Server-Sent Events.
+
+Useful scripts:
+
+```bash
+npm test    # unit + HTTP/SSE tests
+npm start   # server only, default log data/soul-capsule.jsonl, no seed
+npm run demo
+```
 
 Optional environment (see `.env.example`):
 

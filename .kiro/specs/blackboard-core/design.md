@@ -11,12 +11,15 @@ This is an event-sourced, CQRS-style split in miniature: the log is the write mo
 ```
 Browser UI  --POST /api/events-->  HTTP server  -->  validate  -->  AppendOnlyLog
 Browser UI  --GET  /api/projection--> HTTP server -->  read log  -->  projectBoard
+Browser UI  --GET  /api/stream----->  HTTP server  -->  SSE snapshot + append events
 ```
 
 - `src/schema.ts` — types, status vocabulary, validator
 - `src/log.ts` — append-only file I/O and duplicate-id check
 - `src/projection.ts` — latest-status-per-subject mapping
-- `src/server.ts` — `127.0.0.1` HTTP listener
+- `src/app.ts` — HTTP app factory, `/api/*`, and `/api/stream` SSE
+- `src/server.ts` — `127.0.0.1` listener entry
+- `scripts/demo.ts` — `npm run demo` seeds agent-a / agent-b and starts the server
 - `src/public/*` — static form and board
 
 ## Subject key
@@ -48,7 +51,7 @@ No remote MCP calls in this design. `.kiro/settings/mcp.json` is a disabled plac
 
 ## Testing
 
-`npm test` runs Node's test runner against `test/schema.test.ts` and `test/projection.test.ts`, covering validation, latest-status projection, and the append-only / duplicate-id guarantees.
+`npm test` runs Node's test runner against `test/schema.test.ts`, `test/projection.test.ts`, and `test/http.test.ts`, covering validation, latest-status projection, append-only / duplicate-id guarantees, the two-agent HTTP path, and SSE append notifications.
 
 ## Security
 

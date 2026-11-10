@@ -77,6 +77,7 @@
     .card strong { display: block; }
     .meta { color: var(--muted); font-size: 12px; }
     .error { color: var(--blocked); font-size: 13px; min-height: 1.2em; }
+    #live-state { color: var(--live); }
     .log { margin-top: 0.75rem; max-height: 16rem; overflow: auto; }
     pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; color: var(--muted); }
   </style>
@@ -84,7 +85,7 @@
 <body>
   <header>
     <h1>Soul Capsule Blackboard</h1>
-    <p class="sub">Local draft. Two agents append evt- capsules to an append-only log. The board is a derived projection: LIVE, BLOCKED, ACTION REQUIRED. This page does not call gc-mcp or Notion.</p>
+    <p class="sub">Local draft. Two agents append evt- capsules to an append-only log. The board is a derived projection: LIVE, BLOCKED, ACTION REQUIRED. This page does not call gc-mcp or Notion. <span id="live-state">Connecting…</span></p>
   </header>
   <main>
     <form id="append-form">
