@@ -2,7 +2,7 @@
   "name": "soul-capsule-blackboard",
   "version": "0.1.0",
   "private": true,
-  "description": "Local append-only Soul Capsule blackboard with LIVE / BLOCKED / ACTION REQUIRED projection. Kiroween 2026 Resurrection draft.",
+  "description": "Append-only Soul Capsule blackboard with LIVE / BLOCKED / ACTION REQUIRED projection. Kiroween 2026 Resurrection.",
   "license": "MIT",
   "author": "Igor Apollovich Holt",
   "type": "module",
@@ -18,7 +18,9 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2"
   }
 }

@@ -1,0 +1,18 @@
+# Free-tier Render web service. Do not change `plan` to a paid value.
+# Storage is ephemeral: the append-only log is re-seeded when the
+# instance spins down or redeploys and the filesystem is reset.
+services:
+  - type: web
+    name: soul-capsule-blackboard
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: SEED_DEMO
+        value: "1"
+      - key: HOST
+        value: "0.0.0.0"

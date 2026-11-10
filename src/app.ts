@@ -1,5 +1,5 @@
 /**
- * HTTP app factory for the local Soul Capsule Blackboard.
+ * HTTP app factory for the Soul Capsule Blackboard.
  * Does not call gc-mcp, Notion, or any remote gateway.
  */
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from "node:http";
@@ -30,6 +30,60 @@ export interface AppOptions {
   logPath?: string;
   port?: number;
   host?: string;
+  /** When true, seed the two-agent demo capsules if the log is empty. */
+  seedIfEmpty?: boolean;
+}
+
+/** Bind 0.0.0.0 when a platform sets PORT (or HOST is provided). Local default stays loopback. */
+export function resolveListenHost(explicit?: string): string {
+  if (explicit) return explicit;
+  if (process.env.HOST && process.env.HOST.trim() !== "") return process.env.HOST;
+  if (process.env.PORT) return "0.0.0.0";
+  return "127.0.0.1";
+}
+
+export const DEMO_SESSION_ID = "demo-seed";
+
+export const DEMO_CAPSULE_DRAFTS: Array<Record<string, unknown>> = [
+  {
+    source: "agent-a",
+    title: "demo-task is live",
+    content: "Seeded on start so the board is visible immediately. Append-only log only; no remote services.",
+    status: "live",
+    tags: ["subject:demo-task"],
+    connections: ["demo-task"],
+    session_id: DEMO_SESSION_ID,
+  },
+  {
+    source: "agent-b",
+    title: "demo-task is blocked",
+    content: "Agent B appends a later capsule for the same subject.",
+    status: "blocked",
+    tags: ["subject:demo-task"],
+    connections: ["demo-task"],
+    session_id: DEMO_SESSION_ID,
+  },
+  {
+    source: "agent-a",
+    title: "review-gate needs action",
+    content: "A second subject, so all three board columns can be shown after you append a LIVE item.",
+    status: "action_required",
+    tags: ["subject:review-gate"],
+    connections: ["review-gate"],
+    session_id: DEMO_SESSION_ID,
+  },
+];
+
+export async function seedDemoIfEmpty(log: AppendOnlyLog): Promise<CapsuleEvent[]> {
+  const { events } = await log.read();
+  if (events.length > 0) return [];
+  const seeded: CapsuleEvent[] = [];
+  for (const draft of DEMO_CAPSULE_DRAFTS) {
+    const event = buildCapsuleEvent(draft);
+    await log.append(event);
+    seeded.push(event);
+  }
+  return seeded;
 }
 
 export function buildCapsuleEvent(incoming: Record<string, unknown>): CapsuleEvent {
@@ -92,7 +146,7 @@ export function createBlackboardServer(options: AppOptions = {}): {
   }
 
   async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
-    if (req.method === "GET" && url.pathname === "/api/health") {
+    if (req.method === "GET" && (url.pathname === "/api/health" || url.pathname === "/health")) {
       send(res, 200, { ok: true, log_path: logPath, schema_version: SCHEMA_VERSION, live: "sse" });
       return true;
     }
@@ -109,8 +163,9 @@ export function createBlackboardServer(options: AppOptions = {}): {
     if (req.method === "GET" && url.pathname === "/api/stream") {
       res.writeHead(200, {
         "content-type": "text/event-stream",
-        "cache-control": "no-store",
+        "cache-control": "no-cache, no-store",
         connection: "keep-alive",
+        "x-accel-buffering": "no",
       });
       res.write(":\n\n");
       const snap = await snapshot();
@@ -186,10 +241,13 @@ export async function startServer(options: AppOptions = {}): Promise<{
   port: number;
   url: string;
   logPath: string;
+  seeded: CapsuleEvent[];
 }> {
-  const host = options.host ?? "127.0.0.1";
+  const host = resolveListenHost(options.host);
   const requested = options.port ?? DEFAULT_PORT;
-  const { server, logPath } = createBlackboardServer(options);
+  const { server, log, logPath } = createBlackboardServer(options);
+  const shouldSeed = options.seedIfEmpty === true || (options.seedIfEmpty === undefined && process.env.SEED_DEMO === "1");
+  const seeded = shouldSeed ? await seedDemoIfEmpty(log) : [];
 
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
@@ -203,6 +261,7 @@ export async function startServer(options: AppOptions = {}): Promise<{
   if (!address || typeof address === "string") {
     throw new Error("server did not bind a TCP port");
   }
-  const url = `http://${host}:${address.port}`;
-  return { server, port: address.port, url, logPath };
+  const displayHost = host === "0.0.0.0" ? "127.0.0.1" : host;
+  const url = `http://${displayHost}:${address.port}`;
+  return { server, port: address.port, url, logPath, seeded };
 }

@@ -109,5 +109,8 @@ describe("HTTP API and live stream", async () => {
     assert.equal(bad.status, 400);
     const health = await fetch(`${url}/api/health`);
     assert.equal(health.status, 200);
+    const rootHealth = await fetch(`${url}/health`);
+    assert.equal(rootHealth.status, 200);
+    assert.equal((await rootHealth.json()).ok, true);
   });
 });
