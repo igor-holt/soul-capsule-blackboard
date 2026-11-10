@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Append a local capsule when core source changes",
+      "description": "When the agent saves a core TypeScript file, append one validated evt- record to the local JSONL log. This updates the local capsule log only. It does not call gc-mcp, Notion, or any remote gateway.",
+      "trigger": "PostFileSave",
+      "matcher": "src/(schema|log|projection|server)\\.ts$",
+      "timeout": 30,
+      "enabled": true,
+      "action": {
+        "type": "command",
+        "command": "python3 scripts/append-hook-capsule.py"
+      }
+    }
+  ]
+}

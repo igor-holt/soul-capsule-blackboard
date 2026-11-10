@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run unit tests on TypeScript save",
+      "description": "After the agent saves a TypeScript source or test file, run the local unit tests. This hook only exercises the in-repo test runner; it does not deploy or call remote services.",
+      "trigger": "PostFileSave",
+      "matcher": "\\.(ts)$",
+      "timeout": 120,
+      "enabled": true,
+      "action": {
+        "type": "command",
+        "command": "npm test"
+      }
+    }
+  ]
+}

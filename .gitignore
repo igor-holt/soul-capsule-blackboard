@@ -1,0 +1,25 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local secrets and env (never commit credentials)
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Runtime log data may be regenerated; keep the directory
+data/*.jsonl
+!data/.gitkeep
+
+# IMPORTANT: do NOT ignore .kiro or any of its subfolders.
+# Kiroween rules require a committed /.kiro directory at the repo root.
+# If you add ignore rules later, never add .kiro/ or .kiro/**

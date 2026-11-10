@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "gc": {
+      "command": "gc-mcp",
+      "args": [],
+      "env": {
+        "GC_API_KEY": "${GC_API_KEY}",
+        "GC_GATEWAY_URL": "${GC_GATEWAY_URL}",
+        "GC_NOTION_BRIDGE_URL": "${GC_NOTION_BRIDGE_URL}",
+        "GC_NOTION_BRIDGE_AUTH": "${GC_NOTION_BRIDGE_AUTH}"
+      },
+      "disabled": true
+    }
+  }
+}

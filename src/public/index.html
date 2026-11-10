@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Soul Capsule Blackboard (local draft)</title>
+  <style>
+    :root {
+      --bg: #0f1210;
+      --panel: #171b18;
+      --ink: #e8efe6;
+      --muted: #93a090;
+      --line: #2a332c;
+      --live: #3dba7a;
+      --blocked: #d4584f;
+      --action: #e0b041;
+      --other: #6d7a70;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 "IBM Plex Sans", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    header, footer {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--line);
+    }
+    footer { border-bottom: 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    h1 { margin: 0 0 0.25rem; font-size: 1.25rem; }
+    .sub { color: var(--muted); margin: 0; }
+    main { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; padding: 1rem; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    form, .board, .log {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    label { display: block; margin: 0.55rem 0 0.2rem; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    input, select, textarea {
+      width: 100%;
+      background: #0f1210;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.45rem 0.5rem;
+      font: inherit;
+    }
+    button {
+      margin-top: 0.9rem;
+      width: 100%;
+      background: #c9b37a;
+      color: #1a1408;
+      border: 0;
+      border-radius: 6px;
+      padding: 0.6rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.05); }
+    .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    @media (max-width: 700px) { .columns { grid-template-columns: 1fr; } }
+    .col { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem; min-height: 8rem; }
+    .col h2 { margin: 0 0 0.6rem; font-size: 0.85rem; letter-spacing: 0.06em; }
+    .LIVE h2 { color: var(--live); }
+    .BLOCKED h2 { color: var(--blocked); }
+    .ACTION_REQUIRED h2 { color: var(--action); }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      background: #121613;
+    }
+    .card strong { display: block; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .error { color: var(--blocked); font-size: 13px; min-height: 1.2em; }
+    .log { margin-top: 0.75rem; max-height: 16rem; overflow: auto; }
+    pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Soul Capsule Blackboard</h1>
+    <p class="sub">Local draft. Two agents append evt- capsules to an append-only log. The board is a derived projection: LIVE, BLOCKED, ACTION REQUIRED. This page does not call gc-mcp or Notion.</p>
+  </header>
+  <main>
+    <form id="append-form">
+      <h2>Append a capsule</h2>
+      <label for="source">Agent source</label>
+      <select id="source" name="source">
+        <option value="agent-a">agent-a</option>
+        <option value="agent-b">agent-b</option>
+      </select>
+      <label for="subject">Subject key</label>
+      <input id="subject" name="subject" value="demo-task" required />
+      <label for="title">Title</label>
+      <input id="title" name="title" value="Demo capsule" required />
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="live">live → LIVE</option>
+        <option value="blocked">blocked → BLOCKED</option>
+        <option value="action_required">action_required → ACTION REQUIRED</option>
+        <option value="in_progress">in_progress → other</option>
+        <option value="proposed">proposed → other</option>
+        <option value="resolved">resolved → other</option>
+      </select>
+      <label for="content">Content</label>
+      <textarea id="content" name="content" rows="3">Local demo note. Not a remote capsule write.</textarea>
+      <button type="submit">Append event</button>
+      <p class="error" id="error"></p>
+    </form>
+    <div>
+      <section class="board">
+        <h2>Board projection</h2>
+        <p class="meta" id="stats">Loading…</p>
+        <div class="columns">
+          <div class="col LIVE"><h2>LIVE</h2><div id="col-LIVE"></div></div>
+          <div class="col BLOCKED"><h2>BLOCKED</h2><div id="col-BLOCKED"></div></div>
+          <div class="col ACTION_REQUIRED"><h2>ACTION REQUIRED</h2><div id="col-ACTION_REQUIRED"></div></div>
+        </div>
+      </section>
+      <section class="log">
+        <h2>Append-only log (newest last)</h2>
+        <pre id="log"></pre>
+      </section>
+    </div>
+  </main>
+  <footer>
+    Soul Capsule Blackboard — local Kiroween 2026 Resurrection draft. MIT © 2026 Igor Apollovich Holt.
+    Status values other than live / blocked / action_required appear only if you choose them; they are not shown in the three demo columns.
+  </footer>
+  <script src="./app.js" type="module"></script>
+</body>
+</html>
