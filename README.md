@@ -1,8 +1,12 @@
 # Soul Capsule Blackboard
 
-Local Kiroween 2026 draft for the **Resurrection** category.
+Kiroween 2026 project for the **Resurrection** category.
 
-A working software application in which two agent sources append `evt-` capsules to an **append-only** JSONL log, and a simple web board projects each subject into **LIVE**, **BLOCKED**, or **ACTION REQUIRED**. This repository is a local draft only. It has not been published, pushed, or submitted.
+**Live demo:** https://soul-capsule-blackboard.onrender.com
+
+Public repository: https://github.com/igor-holt/soul-capsule-blackboard (`main`).
+
+A working software application in which two agent sources append `evt-` capsules to an **append-only** JSONL log, and a simple web board projects each subject into **LIVE**, **BLOCKED**, or **ACTION REQUIRED**.
 
 ## Pitch
 
@@ -39,57 +43,80 @@ New work in this repository (to be built and finished during the Submission Peri
 
 ## Current scope (honest)
 
-Implemented in this local draft:
+Implemented:
 
 - Append-only JSONL log at `data/soul-capsule.jsonl` (gitignored as generated data; the `data/` directory is kept)
 - Schema validation for `evt-` records (`schema_version` `1.0`)
 - Derived board projection with three demo columns
-- A local web UI on `http://127.0.0.1:8788` so two agent sources can append events, with live board updates over `/api/stream`
-- `npm run demo` to start the server and seed agent-a / agent-b capsules
-- Unit tests for validation, projection, and append-only behavior
+- A web UI so two agent sources can append events, with live board updates over `/api/stream` (Server-Sent Events)
+- Demo seed on start when the log is empty, so judges see the board immediately
+- `npm run demo` for a local one-command walkthrough
+- Unit and HTTP/SSE tests
 - A committed `/.kiro` directory (not gitignored)
+- A public free-tier Render deploy at the live URL above (plan `free`, no payment method added for this service)
 
 Not implemented, and not claimed:
 
 - Live `gc-mcp` or Notion-bridge writes/queries
-- Authentication, multi-user networking, or a public deployment
+- Authentication or multi-user accounts
+- Persistent hosted storage (the Render free filesystem is ephemeral)
 - On-chain attestation, EulerCycleAttestor, or Diamondnode telemetry
 - Property-based testing, custom Kiro agents on disk, or a Kiro Crew app
 - A recorded demo video or a Devpost submission (those come later, and any YouTube upload waits for Igor's approval)
 
 `.kiro/settings/mcp.json` contains `${ENV}` placeholders and leaves the `gc` server `disabled` so a future adapter can be wired without committing secrets. Enabling it does not make remote tools work until that adapter is actually built and verified.
 
+## Run the live demo
+
+Open https://soul-capsule-blackboard.onrender.com
+
+The first request may take about a minute if the free instance has spun down. After it is up, the board is already seeded: `demo-task` under BLOCKED (latest of two agent appends) and `review-gate` under ACTION REQUIRED. You can append another capsule in the form; `/api/stream` updates open tabs. `GET /health` returns 200. `POST /api/events` appends a capsule and the projection updates.
+
+This is a Render **Free** web service (`$0`, 512 MB RAM). Limits that judges should expect:
+
+- The instance spins down after 15 minutes without inbound traffic, then takes about a minute to start again.
+- Each workspace has 750 free instance hours per calendar month; a spun-down service does not consume those hours. If the hours run out, free services are suspended until the next month.
+- Disk is ephemeral. Appended capsules are lost on spin-down, restart, or redeploy, and the two-agent demo seed is written again on the next start.
+- No secrets are stored in the repo. Hosting env vars are only `SEED_DEMO=1` and `HOST=0.0.0.0`. Render also provides `$PORT`.
+
+`render.yaml` in this repo documents that free-tier service. Do not change `plan` to a paid value.
+
 ## Run instructions (local)
 
 Requires Node.js 20 or newer. One-command demo:
 
 ```bash
+git clone https://github.com/igor-holt/soul-capsule-blackboard.git
 cd soul-capsule-blackboard
 npm install
 npm run demo
 ```
 
-That command starts the local server, seeds capsules from `agent-a` and `agent-b` into a fresh `data/demo-session.jsonl` (it does not rewrite any other log), and prints [http://127.0.0.1:8788](http://127.0.0.1:8788). Open the URL. The board should already show `demo-task` under BLOCKED (latest of two appends) and `review-gate` under ACTION REQUIRED. Further appends update open tabs over Server-Sent Events.
+That command starts the local server, seeds capsules from `agent-a` and `agent-b` into a fresh `data/demo-session.jsonl` (it does not rewrite any other log), and prints http://127.0.0.1:8788. Open the URL. The board should already show `demo-task` under BLOCKED (latest of two appends) and `review-gate` under ACTION REQUIRED. Further appends update open tabs over Server-Sent Events.
 
 Useful scripts:
 
 ```bash
 npm test    # unit + HTTP/SSE tests
-npm start   # server only, default log data/soul-capsule.jsonl, no seed
+npm start   # binds $PORT or 8788; seeds the default log only if it is empty
 npm run demo
 ```
+
+When `PORT` is set (as on Render), the server binds `0.0.0.0`. Local runs without `PORT` stay on `127.0.0.1`.
 
 Optional environment (see `.env.example`):
 
 - `PORT` — defaults to `8788`
+- `HOST` — defaults to `0.0.0.0` when `PORT` is set, otherwise `127.0.0.1`
 - `CAPSULE_LOG_PATH` — defaults to `data/soul-capsule.jsonl`
+- `SEED_DEMO` — `npm start` always seeds an empty log; set `SEED_DEMO=0` only if you need a blank board
 
 Do not commit a `.env` file.
 
 ## Kiroween notes
 
 - Category: **Resurrection**
-- License: MIT, Copyright (c) 2026 Igor Apollovich Holt, in `LICENSE` (keep this visible in GitHub About when a public repo is created later)
+- License: MIT, Copyright (c) 2026 Igor Apollovich Holt, in `LICENSE` (keep this visible in the GitHub About section)
 - The `/.kiro` directory must remain committed and must not be added to `.gitignore`
 - Submission deadline: December 4, 2026, 5:00 PM ET (2:00 PM PT). See `/workspace/kiroween/plan.json` and `/workspace/kiroween/demo-video-plan.md` for the compressed schedule and shot list.
 
